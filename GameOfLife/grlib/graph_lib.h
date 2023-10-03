@@ -37,6 +37,8 @@ void grlib_check_events(grlib_window *window);
 void grlib_set_pixel(grlib_window *window, size_t x, size_t y, rgb_config rgb);
 void grlib_set_random_pixels(grlib_window *window, rgb_config rgb);
 
+void grlib_copy_image_buffer(grlib_window *window, uint8_t *buffer, rgb_config life_rgb, rgb_config death_rgb);
+
 #ifdef __cplusplus
 } // extern "C"
 #endif

@@ -2,7 +2,6 @@
 
 #include <cassert>
 #include <cstring>
-#include <cstdlib>
 
 #include <SFML/Graphics.hpp>
 #include <SFML/Graphics/Color.hpp>
@@ -23,7 +22,7 @@ grlib_window *grlib_create_window(window_config *window_conf)
 
     window->window_conf = window_conf;
     window->window.create(sf::VideoMode(window_conf->width, window_conf->height), window_conf->name);
-    window->buffer.create(window_conf->width, window_conf->height);
+    window->buffer.create(window_conf->width, window_conf->height, {0, 0, 0});
 
     return window;
 }
@@ -78,8 +77,26 @@ void grlib_set_random_pixels(grlib_window *window, rgb_config rgb)
 
     for (size_t y = 0; y < window->window_conf->height; ++y) {
         for (size_t x = 0; x < window->window_conf->width; ++x) {
-            if (std::rand() % 17 == 0) {
+            if (std::rand() % 2 == 0) {
                 grlib_set_pixel(window, x, y, rgb);
+            }
+        }
+    }
+}
+
+static sf::Color rgb_to_color(rgb_config rgb)
+{
+    return sf::Color {rgb.red, rgb.grn, rgb.ble};
+}
+
+void grlib_copy_image_buffer(grlib_window *window, uint8_t *buffer, rgb_config life_rgb, rgb_config death_rgb)
+{
+    for (size_t x = 0; x < window->window_conf->width; ++x) {
+        for (size_t y = 0; y < window->window_conf->height; ++y) {
+            if (window->buffer.getPixel(x, y) == rgb_to_color(death_rgb)) {
+                *(buffer + window->window_conf->width * y + x) = 0;
+            } else if (window->buffer.getPixel(x, y) == rgb_to_color(life_rgb)) {
+                *(buffer + window->window_conf->width * y + x) = 1;
             }
         }
     }
