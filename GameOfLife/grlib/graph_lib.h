@@ -34,7 +34,8 @@ bool grlib_is_window_open(grlib_window *window);
 void grlib_update_window(grlib_window *window);
 void grlib_check_events(grlib_window *window);
 
-void grlib_set_pixel(grlib_window *window, uint8_t x, uint8_t y, rgb_config rgb);
+void grlib_set_pixel(grlib_window *window, size_t x, size_t y, rgb_config rgb);
+void grlib_set_random_pixels(grlib_window *window, rgb_config rgb);
 
 #ifdef __cplusplus
 } // extern "C"

@@ -2,11 +2,14 @@
 
 #include <cassert>
 #include <cstring>
+#include <cstdlib>
 
 #include <SFML/Graphics.hpp>
 #include <SFML/Graphics/Color.hpp>
 
 struct grlib_window {
+    window_config *window_conf {nullptr};
+    
     sf::RenderWindow window;
     sf::Image buffer;
 };
@@ -18,6 +21,7 @@ grlib_window *grlib_create_window(window_config *window_conf)
     auto *window = new grlib_window;
     assert(window);
 
+    window->window_conf = window_conf;
     window->window.create(sf::VideoMode(window_conf->width, window_conf->height), window_conf->name);
     window->buffer.create(window_conf->width, window_conf->height);
 
@@ -44,7 +48,7 @@ void grlib_update_window(grlib_window *window)
     window->window.display();
 }
 
-void grlib_set_pixel(grlib_window *window, uint8_t x, uint8_t y, rgb_config rgb)
+void grlib_set_pixel(grlib_window *window, size_t x, size_t y, rgb_config rgb)
 {
     assert(window);
     window->buffer.setPixel(x, y, {rgb.red, rgb.grn, rgb.ble});
@@ -64,6 +68,19 @@ void grlib_check_events(grlib_window *window)
     while (window->window.pollEvent(event)) {
         if (event.type == sf::Event::Closed) {
             window->window.close();   
+        }
+    }
+}
+
+void grlib_set_random_pixels(grlib_window *window, rgb_config rgb)
+{
+    assert(window);
+
+    for (size_t y = 0; y < window->window_conf->height; ++y) {
+        for (size_t x = 0; x < window->window_conf->width; ++x) {
+            if (std::rand() % 17 == 0) {
+                grlib_set_pixel(window, x, y, rgb);
+            }
         }
     }
 }
