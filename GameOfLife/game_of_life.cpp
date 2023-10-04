@@ -81,29 +81,45 @@ size_t calculate_neighbors_summ(window_config *w_conf, uint8_t *buffer, size_t x
     assert(w_conf);
 
     size_t summ = 0;
-    
-    int i = -1;
-    int j = -1;
-    
-    if (x == 0) i = 0;
-    if (y == 0) j = 0;
+    size_t width = w_conf->width;
+    size_t height = w_conf->height;
 
-    for (; i <= 1; ++i) {
-        for (; j <= 1; ++j) {
-            if (y + j >= w_conf->height || 
-                x + i >= w_conf->width) {
-                continue;
-            }
-            if (i == 0 && j == 0) {
-                continue;
-            }
-            summ += *(buffer + w_conf->width * (y + j) + (x + i));
-            // printf("buffer = %d; i = %d, j = %d, x = %lu, y = %lu\n", *(buffer + w_conf->width * (y + j) + (x + i)), i, j, x, y);
+    // int i = -1;
+    // int j = -1;
+    
+    // if (x == 0) i = 0;
+    // if (y == 0) j = 0;
+
+    // for (; i <= 1; ++i) {
+    //     for (; j <= 1; ++j) {
+    //         if (y + j >= w_conf->height || 
+    //             x + i >= w_conf->width) {
+    //             continue;
+    //         }
+    //         if (i == 0 && j == 0) {
+    //             continue;
+    //         }
+    //         summ += *(buffer + w_conf->width * (y + j) + (x + i));
+    //         // printf("buffer = %d; i = %d, j = %d, x = %lu, y = %lu\n", *(buffer + w_conf->width * (y + j) + (x + i)), i, j, x, y);
+    //     }
+
+    //     j = -1;
+    //     if (y == 0) j = 0;
+    // }
+
+    int grid_x = 0;
+    int grid_y = 0;
+
+    for (int i = -1; i <= 1; ++i) {
+        for (int j = -1; j <= 1; ++j) {
+            grid_x = (x + i + width) % width;
+            grid_y = (y + j + height) % height;
+
+            summ += *(buffer + width * grid_y + grid_x);
         }
-
-        j = -1;
-        if (y == 0) j = 0;
     }
+
+    summ -= *(buffer + width * y + x);
 
     return summ;
 }
