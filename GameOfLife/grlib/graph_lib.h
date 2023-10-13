@@ -12,31 +12,27 @@ extern "C" {
 #define GRLIB_DEFAULT_HEIGHT 720
 #define DEFAULT_FRAMERATE 60
 
-struct window_config {
-    size_t width {0};
-    size_t height {0};
-
-    const char *name {nullptr};
-};
-
-struct rgb_config {
-    uint8_t red {0};
-    uint8_t grn {0};
-    uint8_t ble {0};
+struct argb_config {
+    uint8_t alpha {0};
+    uint8_t red   {0};
+    uint8_t grn   {0};
+    uint8_t ble   {0};
 };
 
 struct grlib_window;
 
-grlib_window *grlib_create_window(window_config *window_conf);
-void grlib_destroy_window(grlib_window *window);
+grlib_window* grlib_get_window();
 
-bool grlib_is_window_open(grlib_window *window);
-void grlib_update_window(grlib_window *window);
-void grlib_check_events(grlib_window *window);
+grlib_window *grlib_init(size_t width, size_t height, const char *window_name, uint8_t rgb);
 
-void grlib_set_pixel(grlib_window *window, size_t x, size_t y, rgb_config rgb);
+argb_config get_color_from_argb(uint32_t argb); 
 
-void grlib_copy_image_buffer(grlib_window *window, uint8_t *buffer, rgb_config life_rgb, rgb_config death_rgb);
+void grlib_set_pixel(size_t x, size_t y, uint32_t argb);
+
+void grlib_set_random_pixels(size_t width, size_t height, uint8_t *buffer, uint32_t argb);
+
+void grlib_update_window();
+int grlib_check_events();
 
 #ifdef __cplusplus
 } // extern "C"

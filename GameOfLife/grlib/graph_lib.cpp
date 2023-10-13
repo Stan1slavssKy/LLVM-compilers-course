@@ -4,30 +4,42 @@
 #include <SFML/Graphics/Color.hpp>
 
 struct grlib_window {
-    window_config *window_conf {nullptr};
-    
     sf::RenderWindow window;
     sf::Image buffer;
 };
 
-grlib_window *grlib_create_window(window_config *window_conf)
-{
-    auto *window = new grlib_window;
+static grlib_window gwindow;
 
-    window->window_conf = window_conf;
-    window->window.create(sf::VideoMode(window_conf->width, window_conf->height), window_conf->name);
-    window->buffer.create(window_conf->width, window_conf->height, {0, 0, 0});
+grlib_window* grlib_get_window() {
+    return &gwindow;
+}
+
+grlib_window *grlib_init(size_t width, size_t height, const char *window_name, uint8_t rgb)
+{
+    (void)rgb;
+    auto *window = grlib_get_window();
+
+    window->window.create(sf::VideoMode(width, height), window_name);
+    window->window.setFramerateLimit(60);
+    window->buffer.create(width, height, {0, 0, 0});
 
     return window;
 }
 
-void grlib_destroy_window(grlib_window *window)
+argb_config get_color_from_argb(uint32_t argb)
 {
-    delete window;
+    uint8_t alpha = (argb & 0xFF000000) >> 24;
+    uint8_t red   = (argb & 0x00FF0000) >> 16;
+    uint8_t green = (argb & 0x0000FF00) >> 8;
+    uint8_t blue  = (argb & 0x000000FF) >> 0;
+
+    return argb_config{alpha, red, green, blue};
 }
 
-void grlib_update_window(grlib_window *window)
+void grlib_update_window()
 {
+    auto *window = grlib_get_window();
+
     sf::Texture texture;
     texture.loadFromImage(window->buffer);
 
@@ -39,39 +51,38 @@ void grlib_update_window(grlib_window *window)
     window->window.display();
 }
 
-void grlib_set_pixel(grlib_window *window, size_t x, size_t y, rgb_config rgb)
+void grlib_set_pixel(size_t x, size_t y, uint32_t argb)
 {
-    window->buffer.setPixel(x, y, {rgb.red, rgb.grn, rgb.ble});
+    auto *window = grlib_get_window();
+
+    argb_config argb_config = get_color_from_argb(argb);
+    
+    window->buffer.setPixel(x, y, {argb_config.red, argb_config.grn, argb_config.ble, argb_config.alpha});
 }
 
-bool grlib_is_window_open(grlib_window *window)
+int grlib_check_events()
 {
-    return window->window.isOpen();
-}
+    auto *window = grlib_get_window();
 
-void grlib_check_events(grlib_window *window)
-{
     sf::Event event;
     while (window->window.pollEvent(event)) {
         if (event.type == sf::Event::Closed) {
-            window->window.close();   
+            window->window.close();
+            return 1;
         }
     }
+    return 0;
 }
 
-static sf::Color rgb_to_color(rgb_config rgb)
+void grlib_set_random_pixels(size_t width, size_t height, uint8_t *buffer, uint32_t argb)
 {
-    return sf::Color {rgb.red, rgb.grn, rgb.ble};
-}
+    for (size_t x = 0; x < width; ++x) {
+        for (size_t y = 0; y < height; ++y) {
+            uint8_t rand_pixel = std::rand() % 2;
+            *(buffer + width * y + x) = rand_pixel;
 
-void grlib_copy_image_buffer(grlib_window *window, uint8_t *buffer, rgb_config life_rgb, rgb_config death_rgb)
-{
-    for (size_t x = 0; x < window->window_conf->width; ++x) {
-        for (size_t y = 0; y < window->window_conf->height; ++y) {
-            if (window->buffer.getPixel(x, y) == rgb_to_color(death_rgb)) {
-                *(buffer + window->window_conf->width * y + x) = 0;
-            } else if (window->buffer.getPixel(x, y) == rgb_to_color(life_rgb)) {
-                *(buffer + window->window_conf->width * y + x) = 1;
+            if (rand_pixel == 1) {
+                grlib_set_pixel(x, y, argb);
             }
         }
     }

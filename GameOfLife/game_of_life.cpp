@@ -1,77 +1,80 @@
 #include "grlib/graph_lib.h"
 
-#include <cstddef>
-#include <cstdlib>
+#define WIDTH 1080
+#define HEIGHT 720
 
-size_t calculate_neighbors_summ(window_config *w_conf, uint8_t *buffer, size_t x, size_t y);
+void app();
+int calculate_neighbors_sum(uint8_t *buffer, int x, int y);
+void swap(uint8_t **lhs, uint8_t **rhs);
 
 int main()
 {
-    size_t w_width = 1080;
-    size_t w_height = 720;
-    window_config window_conf {w_width, w_height, "GameOfLife"};
-
-    grlib_window *window = grlib_create_window(&window_conf);
-
-    rgb_config life_cell_color {0, 255, 0};
-    rgb_config death_cell_color {0, 0, 0};
-
-    uint8_t *calc_buffer = new uint8_t[w_width * w_height];
-
-    for (size_t x = 0; x < w_width; ++x) {
-        for (size_t y = 0; y < w_height; ++y) {
-            uint8_t rand_pixel = std::rand() % 2;
-            *(calc_buffer + w_width * y + x) = rand_pixel;
-
-            if (rand_pixel == 1) {
-                grlib_set_pixel(window, x, y, life_cell_color);
-            }
-        }
-    }
-
-    while (grlib_is_window_open(window))
-    {
-        grlib_check_events(window);
-        for (size_t y = 0; y < w_height; ++y) {
-            for (size_t x = 0; x < w_width; ++x) {
-                size_t summ = calculate_neighbors_summ(&window_conf, calc_buffer, x, y);
-
-                if (summ == 3) {
-                    grlib_set_pixel(window, x, y, life_cell_color);
-                }
-                if (summ < 2) {
-                    grlib_set_pixel(window, x, y, death_cell_color);
-                }
-                if (summ > 3) {
-                    grlib_set_pixel(window, x, y, death_cell_color);
-                }
-            }
-        }
-
-        grlib_copy_image_buffer(window, calc_buffer, life_cell_color, death_cell_color);
-
-        grlib_update_window(window);
-    }
-
-    grlib_destroy_window(window);
-    delete calc_buffer;
+    grlib_init(WIDTH, HEIGHT, "GameOfLife", 0);
+    app();
 
     return 0;
 }
 
-size_t calculate_neighbors_summ(window_config *w_conf, uint8_t *buffer, size_t x, size_t y)
+void app()
 {
-    size_t summ = 0;
-    size_t width = w_conf->width;
-    size_t height = w_conf->height;
+    uint32_t alpha = ((uint32_t)255 << 24);
+    uint32_t green = ((uint32_t)255 << 8);
+    uint32_t black = 0;
+    uint32_t life_color = green + alpha;
+    uint32_t death_color = black + alpha;
+
+    uint8_t buffer1[WIDTH * HEIGHT] { };
+    uint8_t buffer2[WIDTH * HEIGHT] { };
+
+    uint8_t *old_buffer = buffer1;
+    uint8_t *new_buffer = buffer2;
+
+    grlib_set_random_pixels(WIDTH, HEIGHT, old_buffer, life_color);
+
+    for (; !grlib_check_events(); )
+    {
+        for (int y = 0; y < HEIGHT; ++y) {
+            for (int x = 0; x < WIDTH; ++x) {
+                int sum = calculate_neighbors_sum(old_buffer, x, y);
+
+                if (sum == 3) {
+                    *(new_buffer + WIDTH * y + x) = 1;
+                    grlib_set_pixel(x, y, life_color);
+                } else if (sum < 2) {
+                    *(new_buffer + WIDTH * y + x) = 0;
+                    grlib_set_pixel(x, y, death_color);
+                } else if (sum > 3) {
+                    *(new_buffer + WIDTH * y + x) = 0;
+                    grlib_set_pixel(x, y, death_color);
+                } else {
+                    *(new_buffer + WIDTH * y + x) = *(old_buffer + WIDTH * y + x);
+                }
+            }
+        }
+    
+        grlib_update_window();
+        swap(&old_buffer, &new_buffer);
+    }
+}
+
+void swap(uint8_t **lhs, uint8_t **rhs)
+{
+    uint8_t *temp = *lhs;
+    *lhs = *rhs;
+    *rhs = temp;
+}
+
+int calculate_neighbors_sum(uint8_t *buffer, int x, int y)
+{
+    int sum = 0;
 
     for (int i = -1; i <= 1; ++i) {
         for (int j = -1; j <= 1; ++j) {
-            summ += *(buffer + width * ((y + j + height) % height) + ((x + i + width) % width));
+            sum += *(buffer + WIDTH * ((y + j + HEIGHT) % HEIGHT) + ((x + i + WIDTH) % WIDTH));
         }
     }
 
-    summ -= *(buffer + width * y + x);
+    sum -= *(buffer + WIDTH * y + x);
 
-    return summ;
+    return sum;
 }
