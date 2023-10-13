@@ -14,7 +14,7 @@ grlib_window* grlib_get_window() {
     return &gwindow;
 }
 
-grlib_window *grlib_init(size_t width, size_t height, const char *window_name, uint8_t rgb)
+void grlib_init(size_t width, size_t height, const char *window_name, uint8_t rgb)
 {
     (void)rgb;
     auto *window = grlib_get_window();
@@ -22,8 +22,6 @@ grlib_window *grlib_init(size_t width, size_t height, const char *window_name, u
     window->window.create(sf::VideoMode(width, height), window_name);
     window->window.setFramerateLimit(60);
     window->buffer.create(width, height, {0, 0, 0});
-
-    return window;
 }
 
 argb_config get_color_from_argb(uint32_t argb)

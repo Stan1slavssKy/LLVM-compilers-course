@@ -21,9 +21,9 @@ struct argb_config {
 
 struct grlib_window;
 
-grlib_window* grlib_get_window();
+grlib_window *grlib_get_window();
 
-grlib_window *grlib_init(size_t width, size_t height, const char *window_name, uint8_t rgb);
+void grlib_init(size_t width, size_t height, const char *window_name, uint8_t rgb);
 
 argb_config get_color_from_argb(uint32_t argb); 
 
