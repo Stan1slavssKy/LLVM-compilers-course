@@ -11,7 +11,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti -fno-exceptions")
 
 find_package(SFML 2.5 COMPONENTS system window graphics audio network REQUIRED)
 
-add_executable(game-of-life game_of_life.cpp)
+add_executable(game-of-life game_of_life.cpp app.cpp)
 target_link_libraries(game-of-life graph-lib)
 
 add_subdirectory(grlib)
